@@ -3,13 +3,12 @@
  */
 package mrtjp.mcframes.api;
 
-import mrtjp.relocation.api.RelocationAPI;
-
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.ItemStack;
 import net.minecraft.world.World;
 
 import codechicken.lib.vec.Vector3;
+import mrtjp.relocation.api.RelocationAPI;
 
 /**
  * A utility interface used by the frame ItemBlock when placing. It can be used to add interactions to the default frame
