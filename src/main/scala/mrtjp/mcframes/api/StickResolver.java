@@ -5,9 +5,9 @@ package mrtjp.mcframes.api;
 
 import java.util.Set;
 
-import mrtjp.relocation.api.BlockPos;
-
 import net.minecraft.world.World;
+
+import mrtjp.relocation.api.BlockPos;
 
 /**
  * Helper class used to resolve frame structures.

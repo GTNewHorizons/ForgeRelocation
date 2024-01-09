@@ -3,9 +3,9 @@
  */
 package mrtjp.mcframes.api;
 
-import mrtjp.relocation.api.RelocationAPI;
-
 import net.minecraft.world.World;
+
+import mrtjp.relocation.api.RelocationAPI;
 
 /**
  * Class used instead of {@link IFrame} to add frame capabilities to a block without having the block or tile in that

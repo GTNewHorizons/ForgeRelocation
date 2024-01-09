@@ -3,9 +3,9 @@
  */
 package mrtjp.mcframes.api;
 
-import mrtjp.relocation.api.Relocator;
-
 import net.minecraft.world.World;
+
+import mrtjp.relocation.api.Relocator;
 
 /**
  * Interface that can be implemented on Tile Entities or Blocks that wish to act as frames, which are the blocks that
