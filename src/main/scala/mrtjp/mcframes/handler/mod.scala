@@ -14,6 +14,7 @@ import cpw.mods.fml.common.event.{
 import mrtjp.core.data.{ModConfig, SpecialConfigGui, TModGuiFactory}
 import mrtjp.mcframes.api.MCFramesAPI
 import mrtjp.mcframes.{BlockFrame, BlockMotor, StickRegistry}
+import mrtjp.relocation.Tags
 import net.minecraft.client.gui.GuiScreen
 
 @Mod(
@@ -31,7 +32,7 @@ object MCFramesMod {
 
   final val modID = "MCFrames"
   final val modName = "MCFrames"
-  final val version = "GRADLETOKEN_VERSION"
+  final val version = Tags.VERSION
 
   var blockFrame: BlockFrame = _
   var blockMotor: BlockMotor = _

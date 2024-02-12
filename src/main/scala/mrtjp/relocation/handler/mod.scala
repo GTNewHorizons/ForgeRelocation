@@ -14,6 +14,7 @@ import cpw.mods.fml.common.event.{
 import mrtjp.core.data.{ModConfig, SpecialConfigGui, TModGuiFactory}
 import mrtjp.relocation.api._
 import mrtjp.relocation.{BlockMovingRow, MovingTileRegistry}
+import mrtjp.relocation.Tags
 import net.minecraft.client.gui.GuiScreen
 import org.apache.logging.log4j.LogManager
 
@@ -32,7 +33,7 @@ object RelocationMod {
 
   final val modID = "ForgeRelocation"
   final val modName = "ForgeRelocation"
-  final val version = "GRADLETOKEN_VERSION"
+  final val version = Tags.VERSION
 
   val log = LogManager.getFormatterLogger(modID)
 
