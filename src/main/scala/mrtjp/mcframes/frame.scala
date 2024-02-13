@@ -190,9 +190,10 @@ object RenderFrame extends ISimpleBlockRenderingHandler {
       meta: Int
   ) {
     TextureUtils.bindAtlas(0)
-    CCRenderState.reset()
-    CCRenderState.lightMatrix.locate(w, x, y, z)
-    CCRenderState.setBrightness(w, x, y, z)
+    val state = CCRenderState.instance
+    state.reset()
+    state.lightMatrix.locate(w, x, y, z)
+    state.setBrightness(w, x, y, z)
 
     if (r.hasOverrideBlockTexture) {
       getOrGenerateModel(0).render(
@@ -204,15 +205,16 @@ object RenderFrame extends ISimpleBlockRenderingHandler {
 
   def renderInvBlock(r: RenderBlocks, meta: Int) {
     TextureUtils.bindAtlas(0)
-    CCRenderState.reset()
-    CCRenderState.setDynamic()
-    CCRenderState.pullLightmap()
+    val state = CCRenderState.instance
+    state.reset()
+    state.setDynamic()
+    state.pullLightmap()
 
-    CCRenderState.startDrawing()
+    state.startDrawing()
     RenderFrame.render(new Vector3(-0.5, -0.5, -0.5), 0)
 
-    CCRenderState.render()
-    CCRenderState.draw()
+    state.render()
+    state.draw()
   }
 
   def registerIcons(reg: IIconRegister) {
