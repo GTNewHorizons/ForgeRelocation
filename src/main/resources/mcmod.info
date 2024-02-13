@@ -12,11 +12,7 @@
 		"credits": "",
 		"logoFile": "",
 		"screenshots": [],
-		"parent": "",
-		"requiredMods": ["MrTJPCoreMod"],
-		"dependencies": [],
-		"dependants": [],
-		"useDependencyInformation": true
+		"parent": ""
 	},
   {
 		"modid": "MCFrames",
@@ -30,10 +26,6 @@
 		"credits": "",
 		"logoFile": "fr_logo.png",
 		"screenshots": [],
-		"parent": "",
-		"requiredMods": ["${modId}"],
-		"dependencies": [],
-		"dependants": [],
-		"useDependencyInformation": true
+		"parent": ""
 	}]
 }
