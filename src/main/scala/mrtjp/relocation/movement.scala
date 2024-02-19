@@ -17,17 +17,18 @@ import net.minecraft.client.Minecraft
 import net.minecraft.init.Blocks
 import net.minecraft.world.{ChunkCoordIntPair, World}
 import net.minecraftforge.common.DimensionManager
-
+import scala.collection.concurrent.TrieMap
 import scala.collection.mutable.{
   HashMap => MHashMap,
   MultiMap => MMultiMap,
   Set => MSet
 }
+
 import scala.ref.WeakReference
 
 object MovementManager2 {
   val serverRelocations = MHashMap[Int, WorldStructs]()
-  val clientRelocations = MHashMap[Int, WorldStructs]()
+  val clientRelocations = TrieMap[Int, WorldStructs]()
 
   def relocationMap(isClient: Boolean) =
     if (isClient) clientRelocations else serverRelocations
@@ -106,8 +107,10 @@ object MovementManager2 {
     RelocationSPH.forceSendData()
   }
 
-  def isMoving(w: World, x: Int, y: Int, z: Int) =
-    getWorldStructs(w).contains(x, y, z)
+  def isMoving(w: World, x: Int, y: Int, z: Int) = {
+    if (w == null) false
+    else getWorldStructs(w).contains(x, y, z)
+  }
 
   def addStructToWorld(w: World, b: BlockStruct) {
     getWorldStructs(w).addStruct(b)
