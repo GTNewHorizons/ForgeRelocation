@@ -32,7 +32,6 @@ object MovingRenderer {
 
   private def mc = Minecraft.getMinecraft
   private def world = mc.theWorld
-  private def tes = Tessellator.instance
 
   private def render(x: Int, y: Int, z: Int, rpos: Vector3) {
     val oldOcclusion = mc.gameSettings.ambientOcclusion
@@ -65,8 +64,9 @@ object MovingRenderer {
     )
 
     for (pass <- 0 to 1) {
-      tes.startDrawingQuads()
-      tes.setTranslation(
+      val tess = Tessellator.instance
+      tess.startDrawingQuads()
+      tess.setTranslation(
         -TileEntityRendererDispatcher.staticPlayerX + MathLib
           .clamp(-1f, 1f, rpos.x.toFloat),
         -TileEntityRendererDispatcher.staticPlayerY + MathLib
@@ -77,7 +77,7 @@ object MovingRenderer {
           rpos.z.toFloat
         )
       )
-      tes.setColorOpaque(1, 1, 1)
+      tess.setColorOpaque(1, 1, 1)
 
       block.getRenderBlockPass
       if (block.canRenderInPass(pass)) {
@@ -86,8 +86,8 @@ object MovingRenderer {
         renderHack = true
       }
 
-      tes.setTranslation(0, 0, 0)
-      tes.draw()
+      tess.setTranslation(0, 0, 0)
+      tess.draw()
     }
     RenderHelper.enableStandardItemLighting()
     mc.entityRenderer.disableLightmap(frame)
