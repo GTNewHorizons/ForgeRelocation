@@ -52,7 +52,9 @@ object RelocationClientEventHandler {
 
   @SubscribeEvent
   def clientTick(event: TickEvent.ClientTickEvent) {
-    if (event.phase == TickEvent.Phase.END)
+    if (event.phase == TickEvent.Phase.END) {
       MovementManager2.onTick(true)
+      MovingRenderer.onTick()
+    }
   }
 }
