@@ -1,6 +1,0 @@
-jar {
-    manifest {
-        attributes 'FMLCorePlugin': 'mrtjp.relocation.asm.RelocationPlugin'
-        attributes 'FMLCorePluginContainsFMLMod': true
-    }
-}
