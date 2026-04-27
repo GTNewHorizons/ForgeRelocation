@@ -5,12 +5,9 @@
  */
 package mrtjp.relocation.asm
 
-import java.util.{Map => JMap}
-
 import cpw.mods.fml.common.asm.transformers.deobf.FMLDeobfuscatingRemapper.{
   INSTANCE => mapper
 }
-import cpw.mods.fml.relauncher.{IFMLCallHook, IFMLLoadingPlugin}
 import mrtjp.relocation.handler.RelocationMod
 import net.minecraft.launchwrapper.{IClassTransformer, Launch}
 import org.objectweb.asm.Opcodes._
@@ -18,24 +15,6 @@ import org.objectweb.asm.tree._
 import org.objectweb.asm.{ClassReader, ClassWriter}
 
 import scala.collection.JavaConversions._
-
-/** Add "Dfml.coreMods.load=mrtjp.relocation.asm.RelocationPlugin" to launch
-  * configs to enable in a development workspace.
-  */
-@IFMLLoadingPlugin.MCVersion("1.7.10")
-@IFMLLoadingPlugin.TransformerExclusions(value =
-  Array("mrtjp.relocation.asm.*", "scala")
-)
-class RelocationPlugin extends IFMLLoadingPlugin with IFMLCallHook {
-  override def getASMTransformerClass = Array(
-    "mrtjp.relocation.asm.Transformer"
-  )
-  override def getSetupClass = "mrtjp.relocation.asm.RelocationPlugin"
-  override def getModContainerClass = null
-  override def getAccessTransformerClass = null
-  override def injectData(data: JMap[String, AnyRef]): Unit = {}
-  override def call(): Void = null
-}
 
 class Transformer extends IClassTransformer {
   type MethodChecker = (String, MethodNode) => Boolean

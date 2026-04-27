@@ -106,6 +106,13 @@ object MovingRenderer {
         render(b.x, b.y, b.z, renderPos(s, frame))
   }
 
+  def onTick() = {
+    if (oldWorld != null && world == null) {
+      oldWorld = null
+      renderBlocks = null
+    }
+  }
+
   def onPreRenderTick(time: Float) {
     isRendering = true
     frame = time

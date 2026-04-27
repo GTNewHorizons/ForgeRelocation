@@ -1,6 +1,0 @@
-[{
- 	"repo": "https://github.com/GTNewHorizons/MrTJPCore/releases/download/1.1.1/",
- 	"file": "MrTJPCore-1.7.10-1.1.1.jar",
- 	"dev": "MrTJPCore-1.7.10-1.1.1-dev.jar",
- 	"class": "mrtjp.core.handler.MrTJPCoreMod"
-}]
