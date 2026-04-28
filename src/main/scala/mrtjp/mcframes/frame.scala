@@ -177,30 +177,20 @@ object RenderFrame extends ISimpleBlockRenderingHandler {
       id: Int,
       rb: RenderBlocks
   ) = {
-    renderWorldBlock(rb, world, x, y, z, world.getBlockMetadata(x, y, z))
-    true
-  }
-
-  def renderWorldBlock(
-      r: RenderBlocks,
-      w: IBlockAccess,
-      x: Int,
-      y: Int,
-      z: Int,
-      meta: Int
-  ) {
     TextureUtils.bindAtlas(0)
     val state = CCRenderState.instance
     state.resetInstance()
-    state.lightMatrix.locate(w, x, y, z)
-    state.setBrightnessInstance(w, x, y, z)
+    state.lightMatrix.locate(world, x, y, z)
+    state.setBrightnessInstance(world, x, y, z)
 
-    if (r.hasOverrideBlockTexture) {
+    if (rb.hasOverrideBlockTexture) {
       getOrGenerateModel(0).render(
         new Translation(x, y, z),
-        new IconTransformation(r.overrideBlockTexture)
+        new IconTransformation(rb.overrideBlockTexture)
       )
     } else RenderFrame.render(new Vector3(x, y, z), 0)
+    state.lightMatrix.access = null
+    true
   }
 
   def renderInvBlock(r: RenderBlocks, meta: Int) {
