@@ -280,7 +280,12 @@ class WorldStructs {
     false
   }
 
-  def addStruct(b: BlockStruct) = synchronized {
+  def addStruct(b: BlockStruct): Unit = synchronized {
+    var i = 0
+    while (i < numStructs) {
+      if (structsArr(i).id == b.id) return
+      i += 1
+    }
     if (numStructs == structsArr.length) {
       val ns = new Array[BlockStruct](structsArr.length * 2)
       System.arraycopy(structsArr, 0, ns, 0, numStructs)
@@ -468,6 +473,8 @@ class BlockStruct {
     case that: BlockStruct => id == that.id
     case _                 => false
   }
+
+  override def hashCode() = id
 
   def writeDesc(out: MCDataOutput) {
     out.writeFloat(progress.toFloat)
