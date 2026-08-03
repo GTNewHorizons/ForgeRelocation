@@ -264,6 +264,7 @@ class WorldStructsMap {
 }
 
 class WorldStructs {
+  private val noStructs = new Array[BlockStruct](0)
   private var structsArr = new Array[BlockStruct](4)
   private var numStructs = 0
 
@@ -303,16 +304,25 @@ class WorldStructs {
     }
   }
 
-  def removeFinished() = synchronized {
-    val finished = new Array[BlockStruct](numStructs)
+  def removeFinished(): Array[BlockStruct] = synchronized {
     var nf = 0
-    var keep = 0
     var i = 0
+    while (i < numStructs) {
+      if (structsArr(i).isFinished) nf += 1
+      i += 1
+    }
+
+    if (nf == 0) return noStructs
+
+    val finished = new Array[BlockStruct](nf)
+    var finish = 0
+    var keep = 0
+    i = 0
     while (i < numStructs) {
       val s = structsArr(i)
       if (s.isFinished) {
-        finished(nf) = s
-        nf += 1
+        finished(finish) = s
+        finish += 1
       } else {
         structsArr(keep) = s
         keep += 1
@@ -325,7 +335,7 @@ class WorldStructs {
       j += 1
     }
     numStructs = keep
-    java.util.Arrays.copyOf(finished, nf)
+    finished
   }
 
   def removeStruct(s: BlockStruct) = synchronized {
