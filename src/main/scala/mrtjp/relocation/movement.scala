@@ -17,7 +17,6 @@ import net.minecraft.client.Minecraft
 import net.minecraft.init.Blocks
 import net.minecraft.world.{ChunkCoordIntPair, World}
 import net.minecraftforge.common.DimensionManager
-import scala.collection.concurrent.TrieMap
 import scala.collection.mutable.{
   HashMap => MHashMap,
   MultiMap => MMultiMap,
@@ -27,15 +26,14 @@ import scala.collection.mutable.{
 import scala.ref.WeakReference
 
 object MovementManager2 {
-  val serverRelocations = MHashMap[Int, WorldStructs]()
-  val clientRelocations = TrieMap[Int, WorldStructs]()
+  val serverRelocations = new WorldStructsMap
+  val clientRelocations = new WorldStructsMap
 
   def relocationMap(isClient: Boolean) =
     if (isClient) clientRelocations else serverRelocations
 
   def getWorldStructs(w: World) =
-    relocationMap(w.isRemote)
-      .getOrElseUpdate(w.provider.dimensionId, new WorldStructs)
+    relocationMap(w.isRemote).getOrCreate(w.provider.dimensionId)
 
   def getWorld(dim: Int, isClient: Boolean) =
     if (!isClient) DimensionManager.getWorld(dim)
@@ -167,24 +165,26 @@ object MovementManager2 {
 
   def onTick(isClient: Boolean) {
     val map = relocationMap(isClient)
-    for ((dim, ws) <- map) if (ws.nonEmpty) {
-      ws.pushAll()
-      val world = getWorld(dim, isClient)
-      if (world != null)
-        for (bs <- ws.structs)
-          for (br <- bs.rows)
-            br.pushEntities(world, bs.progress)
+    map.foreach { (dim, ws) =>
+      if (ws.nonEmpty) {
+        ws.pushAll()
+        val world = getWorld(dim, isClient)
+        if (world != null)
+          for (bs <- ws.structs)
+            for (br <- bs.rows)
+              br.pushEntities(world, bs.progress)
+      }
     }
 
     if (!isClient) {
-      val fin = map
-        .map(pair => (pair._1, pair._2.removeFinished()))
-        .filter(_._2.nonEmpty)
-      for ((dim, b) <- fin) {
-        val w = getWorld(dim, false)
-        if (w != null) for (s <- b) {
-          cycleMove(w, s)
-          sendCycle(w, s)
+      map.foreach { (dim, ws) =>
+        val finished = ws.removeFinished()
+        if (finished.nonEmpty) {
+          val w = getWorld(dim, false)
+          if (w != null) for (s <- finished) {
+            cycleMove(w, s)
+            sendCycle(w, s)
+          }
         }
       }
     }
@@ -218,6 +218,47 @@ object MovementManager2 {
       w.notifyBlockOfNeighborChange(bc.x, bc.y, bc.z, Blocks.air)
 
     Utils.rerenderBlocks(w, struct.preMoveBlocks)
+  }
+}
+
+class WorldStructsMap {
+  private var dims = new Array[Int](4)
+  private var structs = new Array[WorldStructs](4)
+  private var size = 0
+
+  def getOrCreate(dim: Int): WorldStructs = synchronized {
+    var i = 0
+    while (i < size) {
+      if (dims(i) == dim) return structs(i)
+      i += 1
+    }
+    val ws = new WorldStructs
+    if (size == dims.length) {
+      val nd = new Array[Int](dims.length * 2)
+      val ns = new Array[WorldStructs](dims.length * 2)
+      System.arraycopy(dims, 0, nd, 0, size)
+      System.arraycopy(structs, 0, ns, 0, size)
+      dims = nd
+      structs = ns
+    }
+    dims(size) = dim
+    structs(size) = ws
+    size += 1
+    ws
+  }
+
+  def foreach(f: (Int, WorldStructs) => Unit) {
+    val ds = new Array[Int](size)
+    val ss = new Array[WorldStructs](size)
+    synchronized {
+      System.arraycopy(dims, 0, ds, 0, size)
+      System.arraycopy(structs, 0, ss, 0, size)
+    }
+    var i = 0
+    while (i < ds.length) {
+      f(ds(i), ss(i))
+      i += 1
+    }
   }
 }
 
@@ -370,12 +411,11 @@ class BlockRow(val pos: BlockCoord, val moveDir: Int, val size: Int) {
   def contains(x: Int, y: Int, z: Int) = {
     import MathLib.{basis, normal, shift}
 
-    import math.{max, min}
-
     if (normal(x, y, z, moveDir) == normal(pos, moveDir)) {
       val b1 = basis(pos, moveDir)
       val b2 = b1 + size * shift(moveDir ^ 1)
-      min(b1, b2) to max(b1, b2) contains basis(x, y, z, moveDir)
+      val b = basis(x, y, z, moveDir)
+      b >= math.min(b1, b2) && b <= math.max(b1, b2)
     } else false
   }
 
