@@ -426,10 +426,11 @@ class BlockStruct {
 
   var progress = 0.0d
 
-  lazy val allBlocks: Set[BlockCoord] = rows.flatMap(_.allBlocks).toSet
-  lazy val preMoveBlocks: Set[BlockCoord] = rows.flatMap(_.preMoveBlocks).toSet
+  lazy val allBlocks: Set[BlockCoord] = rows.iterator.flatMap(_.allBlocks).toSet
+  lazy val preMoveBlocks: Set[BlockCoord] =
+    rows.iterator.flatMap(_.preMoveBlocks).toSet
   lazy val postMoveBlocks: Set[BlockCoord] =
-    rows.flatMap(_.postMoveBlocks).toSet
+    rows.iterator.flatMap(_.postMoveBlocks).toSet
 
   def moveDir = rows(0).moveDir
 
