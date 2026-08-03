@@ -248,14 +248,15 @@ class WorldStructsMap {
   }
 
   def foreach(f: (Int, WorldStructs) => Unit) {
-    val ds = new Array[Int](size)
-    val ss = new Array[WorldStructs](size)
+    val n = synchronized { size }
+    val ds = new Array[Int](n)
+    val ss = new Array[WorldStructs](n)
     synchronized {
-      System.arraycopy(dims, 0, ds, 0, size)
-      System.arraycopy(structs, 0, ss, 0, size)
+      System.arraycopy(dims, 0, ds, 0, n)
+      System.arraycopy(structs, 0, ss, 0, n)
     }
     var i = 0
-    while (i < ds.length) {
+    while (i < n) {
       f(ds(i), ss(i))
       i += 1
     }
