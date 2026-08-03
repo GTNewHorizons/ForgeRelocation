@@ -356,11 +356,10 @@ class WorldStructs {
     numStructs = 0
   }
 
-  def foreachStruct(f: BlockStruct => Unit) {
-    val arr = synchronized { java.util.Arrays.copyOf(structsArr, numStructs) }
+  def foreachStruct(f: BlockStruct => Unit) = synchronized {
     var i = 0
-    while (i < arr.length) {
-      f(arr(i))
+    while (i < numStructs) {
+      f(structsArr(i))
       i += 1
     }
   }
