@@ -30,6 +30,11 @@ object MovingRenderer {
   private var frame = 0.0f
   private var renderBlocks: RenderBlocks = null
 
+  private val renderStruct: BlockStruct => Unit = { s =>
+    for (b <- s.preMoveBlocks)
+      render(b.x, b.y, b.z, renderPos(s, frame))
+  }
+
   private def mc = Minecraft.getMinecraft
   private def world = mc.theWorld
 
@@ -101,10 +106,7 @@ object MovingRenderer {
       renderBlocks.renderAllFaces = true
     }
 
-    MovementManager2.getWorldStructs(world).foreachStruct { s =>
-      for (b <- s.preMoveBlocks)
-        render(b.x, b.y, b.z, renderPos(s, frame))
-    }
+    MovementManager2.getWorldStructs(world).foreachStruct(renderStruct)
   }
 
   def onTick() = {
