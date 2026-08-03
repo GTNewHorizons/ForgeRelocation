@@ -133,7 +133,7 @@ object MovementManager2 {
       map.addBinding(MathLib.normal(b, moveDir), MathLib.basis(b, moveDir))
 
     val shift = if ((moveDir & 1) == 1) 1 else -1
-    val rowB = Set.newBuilder[BlockRow]
+    val rowB = Array.newBuilder[BlockRow]
     for (normal <- map.keys) {
       val line = map(normal).toArray
       val sline =
@@ -263,32 +263,114 @@ class WorldStructsMap {
 }
 
 class WorldStructs {
-  var structs: Set[BlockStruct] = Set.empty
+  private var structsArr = new Array[BlockStruct](4)
+  private var numStructs = 0
 
-  def isEmpty = structs.isEmpty
+  def isEmpty = synchronized { numStructs == 0 }
 
-  def nonEmpty = !isEmpty
+  def nonEmpty = synchronized { numStructs > 0 }
 
-  def contains(x: Int, y: Int, z: Int) = structs.exists(_.contains(x, y, z))
-
-  def addStruct(b: BlockStruct) { structs += b }
-
-  def pushAll() { structs.foreach(_.push()) }
-
-  def removeFinished() = {
-    val finished = structs.filter(_.isFinished)
-    structs = structs.filterNot(_.isFinished)
-    finished
+  def contains(x: Int, y: Int, z: Int): Boolean = synchronized {
+    var i = 0
+    while (i < numStructs) {
+      if (structsArr(i).contains(x, y, z)) return true
+      i += 1
+    }
+    false
   }
 
-  def removeStruct(s: BlockStruct) {
-    structs = structs.filterNot(_ == s)
+  def addStruct(b: BlockStruct) = synchronized {
+    if (numStructs == structsArr.length) {
+      val ns = new Array[BlockStruct](structsArr.length * 2)
+      System.arraycopy(structsArr, 0, ns, 0, numStructs)
+      structsArr = ns
+    }
+    structsArr(numStructs) = b
+    numStructs += 1
   }
 
-  def clear() { structs = Set.empty }
+  def pushAll() = synchronized {
+    var i = 0
+    while (i < numStructs) {
+      structsArr(i).push()
+      i += 1
+    }
+  }
 
-  def getChunks: Set[ChunkCoordIntPair] = {
-    structs.flatMap(_.getChunks)
+  def removeFinished() = synchronized {
+    val finished = new Array[BlockStruct](numStructs)
+    var nf = 0
+    var keep = 0
+    var i = 0
+    while (i < numStructs) {
+      val s = structsArr(i)
+      if (s.isFinished) {
+        finished(nf) = s
+        nf += 1
+      } else {
+        structsArr(keep) = s
+        keep += 1
+      }
+      i += 1
+    }
+    var j = keep
+    while (j < numStructs) {
+      structsArr(j) = null
+      j += 1
+    }
+    numStructs = keep
+    java.util.Arrays.copyOf(finished, nf)
+  }
+
+  def removeStruct(s: BlockStruct) = synchronized {
+    var keep = 0
+    var i = 0
+    while (i < numStructs) {
+      val cur = structsArr(i)
+      if (cur != s) {
+        structsArr(keep) = cur
+        keep += 1
+      }
+      i += 1
+    }
+    var j = keep
+    while (j < numStructs) {
+      structsArr(j) = null
+      j += 1
+    }
+    numStructs = keep
+  }
+
+  def clear() = synchronized {
+    var i = 0
+    while (i < numStructs) {
+      structsArr(i) = null
+      i += 1
+    }
+    numStructs = 0
+  }
+
+  def foreachStruct(f: BlockStruct => Unit) {
+    val arr = synchronized { java.util.Arrays.copyOf(structsArr, numStructs) }
+    var i = 0
+    while (i < arr.length) {
+      f(arr(i))
+      i += 1
+    }
+  }
+
+  def structs: Array[BlockStruct] = synchronized {
+    java.util.Arrays.copyOf(structsArr, numStructs)
+  }
+
+  def getChunks: Set[ChunkCoordIntPair] = synchronized {
+    val c = Set.newBuilder[ChunkCoordIntPair]
+    var i = 0
+    while (i < numStructs) {
+      c ++= structsArr(i).getChunks
+      i += 1
+    }
+    c.result()
   }
 }
 
@@ -324,18 +406,26 @@ class MoveDesc(b: WeakReference[BlockStruct]) extends IMovementDescriptor {
 class BlockStruct {
   var id = -1
   var speed = 1 / 16d
-  var rows: Set[BlockRow] = Set.empty
+  var rows: Array[BlockRow] = Array.empty
   var callback = WeakReference[IMovementCallback](null)
 
   var progress = 0.0d
 
-  lazy val allBlocks = rows.flatMap(_.allBlocks)
-  lazy val preMoveBlocks = rows.flatMap(_.preMoveBlocks)
-  lazy val postMoveBlocks = rows.flatMap(_.postMoveBlocks)
+  lazy val allBlocks: Set[BlockCoord] = rows.flatMap(_.allBlocks).toSet
+  lazy val preMoveBlocks: Set[BlockCoord] = rows.flatMap(_.preMoveBlocks).toSet
+  lazy val postMoveBlocks: Set[BlockCoord] =
+    rows.flatMap(_.postMoveBlocks).toSet
 
-  def moveDir = rows.head.moveDir
+  def moveDir = rows(0).moveDir
 
-  def contains(x: Int, y: Int, z: Int) = rows.exists(_.contains(x, y, z))
+  def contains(x: Int, y: Int, z: Int): Boolean = {
+    var i = 0
+    while (i < rows.length) {
+      if (rows(i).contains(x, y, z)) return true
+      i += 1
+    }
+    false
+  }
 
   def push() { progress = math.min(1.0, progress + speed) }
 
@@ -381,7 +471,7 @@ class BlockStruct {
   def writeDesc(out: MCDataOutput) {
     out.writeFloat(progress.toFloat)
     out.writeFloat(speed.toFloat)
-    out.writeByte(rows.size)
+    out.writeByte(rows.length)
     for (r <- rows) {
       out.writeLong(WorldLib.packCoords(r.pos))
       out.writeByte(r.moveDir)
@@ -392,7 +482,7 @@ class BlockStruct {
   def readDesc(in: MCDataInput) {
     progress = in.readFloat()
     speed = in.readFloat()
-    val rb = Set.newBuilder[BlockRow]
+    val rb = Array.newBuilder[BlockRow]
     for (i <- 0 until in.readUByte())
       rb += new BlockRow(
         WorldLib.unpackCoords(in.readLong()),

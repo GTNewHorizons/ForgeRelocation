@@ -101,9 +101,10 @@ object MovingRenderer {
       renderBlocks.renderAllFaces = true
     }
 
-    for (s <- MovementManager2.getWorldStructs(world).structs)
+    MovementManager2.getWorldStructs(world).foreachStruct { s =>
       for (b <- s.preMoveBlocks)
         render(b.x, b.y, b.z, renderPos(s, frame))
+    }
   }
 
   def onTick() = {
