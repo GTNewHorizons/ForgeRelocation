@@ -126,6 +126,12 @@ object MovementManager2 {
       c: IMovementCallback
   ): Boolean = {
     if (blocks.size > RelocationConfig.moveLimit) return false
+    if (
+      blocks.exists { b =>
+        val block = w.getBlock(b.x, b.y, b.z)
+        block != null && block.getBlockHardness(w, b.x, b.y, b.z) < 0
+      }
+    ) return false
 
     val map = new MHashMap[(Int, Int), MSet[Int]]
       with MMultiMap[(Int, Int), Int]
