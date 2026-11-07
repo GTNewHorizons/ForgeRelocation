@@ -61,6 +61,13 @@ object StickRegistry {
   }
 
   def resolveStick(w: World, pos: BlockCoord, side: Int): Boolean = {
+    val p2 = pos.copy.offset(side)
+    val target = getBlock(w, p2)
+    if (
+      target != null &&
+      target.getBlockHardness(w, p2.x, p2.y, p2.z) < 0
+    ) return false
+
     def getFrame(pos: BlockCoord): IFrame = {
       val b = getBlock(w, pos)
       if (b.isInstanceOf[IFrame]) return b.asInstanceOf[IFrame]
@@ -68,10 +75,8 @@ object StickRegistry {
       if (te != null) return te
       interactionList.find(_.canInteract(w, pos.x, pos.y, pos.z)).orNull
     }
-
     val f1 = getFrame(pos)
     if (f1 != null && f1.stickOut(w, pos.x, pos.y, pos.z, side)) {
-      val p2 = pos.copy.offset(side)
       val f2 = getFrame(p2)
       return f2 == null || f2.stickIn(w, p2.x, p2.y, p2.z, side ^ 1)
     }
